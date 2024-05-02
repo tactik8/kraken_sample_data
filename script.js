@@ -1,92 +1,145 @@
-import { faker } from 'https://esm.sh/@faker-js/faker/locale/fr_CA';
-
-const randomName = faker.person.fullName()
-const randomEmail = faker.internet.email()
-
-console.log(randomEmail)
+import { sample_data } from './kraken_sample_data/kraken_sample_data.js'
 
 
-export function offer(product){
 
-    let record = {
-            "@type": "PriceSpecification",
-            "price": faker.commerce.price({ min: 10, max: 200}),
-            "priceCurrency": "cad"
-        }
-    return record
+const randomUser = sample_data.person();
+console.log(JSON.stringify(randomUser, null, 4));
+
+const randomProduct = sample_data.product();
+console.log(JSON.stringify(randomProduct, null, 4));
+
+console.log('bob')
+const randomReview = sample_data.review();
+console.log("a", JSON.stringify(randomReview, null, 4));
+
+
+function getTypes(){
+
+    return Object.keys(sample_data)
     
 }
 
-export function product(){
 
-    let record = {
-        "@type": "product",
-        "name": faker.commerce.product(),
-        "description": faker.commerce.productDescription(),
-        "offers": {
-            "@type": "Offer",
-            "priceSpecification": offer()
-        }
-    }
+function initPage(){
 
-    return record
-}
+    let div = document.getElementById('test1')
 
+    div.appendChild(getSelectTypeField())
+    div.appendChild(getNumberField())
 
-export function postalAddress(){
+    let divResult = document.getElementById('test2')
 
-    let postalAddress = {
-            "@type": "postalAddress",
-            "streetAddress": faker.location.streetAddress(),
-            "addressLocality": faker.location.city(),
-            "addressRegion": faker.location.state(),
-            "postalCode": faker.location.zipCode(),
-        }
-    return postalAddress
-}
+    let preResult = document.createElement('pre')
+    preResult.id = 'pre3'
+    divResult.appendChild(preResult)
 
-export function person() {
-
-    const sex = faker.person.sexType();
-    const firstName = faker.person.firstName(sex);
-    const lastName = faker.person.lastName();
-    const email = faker.internet.email({ firstName, lastName });
-    const phone = faker.phone.number();
-    const userName = faker.internet.userName({ firstName, lastName })
     
-    let record = {
-        gender: sex,
-        givenName: firstName,
-        familyName: lastName,
-        email: email,
-        image: faker.image.avatar(),
-        birthday: faker.date.birthdate({max: 60, min: 24, mode: 'age'}),
-        jobTitle: faker.person.jobTitle(),
-        telephone: phone, 
-        username: userName, 
-        address: postalAddress(),
-        worksFor: organization()
-    }
- 
-    return record
 }
 
-export function organization(){
 
-    const companyName = faker.company.name()
+function getSelectTypeField(){
+
+
+    let options = []
+    for (let t of getTypes()){
+        options.push(` <option value="${t}">${t}</option>`)
+    }
+
     
-    let record = {
-        "@type": "organization",
-        "name": companyName,
-        "url": faker.internet.url(companyName),
-        address: postalAddress(),
-    }
-    return record
+    let html = `<select id="record_type" class="form-select" aria-label="Default select example">
+      <option selected></option>
+     ${options.join('')}
+    </select>`
+
+    let wrapper = document.createElement('div')
+    wrapper.innerHTML = html
+
+    let element = wrapper.firstChild
+
+    element.addEventListener('change', (event) => {
+
+        getData()
+    })
+
+    return element
+    
 }
 
 
-const randomUser = person()
-console.log(JSON.stringify(randomUser, null, 4))
 
-const randomProduct = product()
-console.log(JSON.stringify(randomProduct, null, 4))
+function getNumberField(){
+
+
+    let options = []
+    for (let t of getTypes()){
+        options.push(` <option value="${t}">${t}</option>`)
+    }
+
+
+    let html = `<input type="number" class="form-control" id="quantity"  value=1>`
+
+    let wrapper = document.createElement('div')
+    wrapper.innerHTML = html
+
+    let element = wrapper.firstChild
+
+    element.addEventListener('change', (event) => {
+
+        getData()
+
+    })
+    return element
+
+}
+
+
+function getData(){
+
+
+    let qtyElement = document.getElementById('quantity')
+    let qty = qtyElement.value
+    let typeElement = document.getElementById('record_type')
+    let record_type = typeElement.value
+    
+    let records = generateRecords(record_type, qty)
+    displayRecords(records)
+
+}
+
+
+function generateRecords(record_type, quantity){
+
+    console.log('q', quantity)
+    let records = []
+    for (let i=0; i< Number(quantity); i++){
+        records.push(sample_data[record_type]())
+    }
+    return records
+}
+
+
+function displayRecords(records){
+
+
+    
+    let div = document.getElementById('pre3')
+
+    console.log(records)
+    div.textContent = JSON.stringify(records, undefined, 4)
+
+
+    div.addEventListener('click', (event) => {
+
+        navigator.clipboard.writeText(JSON.stringify(records, undefined, 4));
+        
+    })
+
+    
+}
+
+
+
+initPage()
+
+
+
